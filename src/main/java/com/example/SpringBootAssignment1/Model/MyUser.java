@@ -1,6 +1,5 @@
 package com.example.SpringBootAssignment1.Model;
 
-
 public class MyUser {
 
     private Long id;
@@ -8,6 +7,7 @@ public class MyUser {
     private String gender;
     private String mobileNumber;
     private String address;
+    private Boolean active;
 
     public Long getId() {
         return id;
@@ -47,5 +47,13 @@ public class MyUser {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Boolean isActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

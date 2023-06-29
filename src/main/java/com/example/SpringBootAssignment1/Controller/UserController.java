@@ -22,6 +22,16 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @GetMapping("_getactive")
+    public List<MyUser> getActiveUsers() {
+        return userService.getActiveUsers();
+    }
+
+    @GetMapping("_getinactive")
+    public List<MyUser> getInactiveUsers() {
+        return userService.getInactiveUsers();
+    }
+
     @PostMapping("_create")
     public MyUser createUser(@RequestBody MyUser myUser) {
         return userService.createUser(myUser);

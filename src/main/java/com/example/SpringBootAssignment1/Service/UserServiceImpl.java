@@ -20,10 +20,15 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
+
     @PostConstruct
     public void createTable() {
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS my_user (id SERIAL PRIMARY KEY, name VARCHAR(255), gender VARCHAR(255), mobile_number VARCHAR(255), address VARCHAR(255))");
+        jdbcTemplate.execute(
+                "CREATE TABLE IF NOT EXISTS my_user (id SERIAL, name VARCHAR(255), gender VARCHAR(255), mobile_number VARCHAR(255), address VARCHAR(255), active BOOLEAN, PRIMARY KEY (id, active)) PARTITION BY LIST (active);");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS active_user PARTITION OF my_user FOR VALUES IN (TRUE);");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS inactive_user PARTITION OF my_user FOR VALUES IN (FALSE);");
     }
+
     @Override
     public List<MyUser> getAllUsers() {
         String sql = "SELECT * FROM my_user";
@@ -31,8 +36,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<MyUser> getActiveUsers() {
+        String sql = "SELECT * FROM active_user";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MyUser.class));
+    }
+
+    @Override
+    public List<MyUser> getInactiveUsers() {
+        String sql = "SELECT * FROM inactive_user";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MyUser.class));
+    }
+
+    @Override
     public MyUser createUser(MyUser myUser) {
-        String sql = "INSERT INTO my_user (name, gender, mobile_number, address) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO my_user (name, gender, mobile_number, address, active) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -41,6 +58,7 @@ public class UserServiceImpl implements UserService {
             ps.setString(2, myUser.getGender());
             ps.setString(3, myUser.getMobileNumber());
             ps.setString(4, myUser.getAddress());
+            ps.setBoolean(5, myUser.isActive());
             return ps;
         }, keyHolder);
 
@@ -68,9 +86,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public MyUser updateUser(Long id, MyUser myUser) {
-        String sql = "UPDATE my_user SET name=?, gender=?, mobile_number=?, address=? WHERE id=?";
+        String sql = "UPDATE my_user SET name=?, gender=?, mobile_number=?, address=?, active=? WHERE id=?";
         jdbcTemplate.update(sql, myUser.getName(), myUser.getGender(), myUser.getMobileNumber(), myUser.getAddress(),
-                id);
+                myUser.isActive(), id);
         myUser.setId(id);
         return myUser;
     }
