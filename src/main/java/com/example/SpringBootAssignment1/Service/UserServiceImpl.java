@@ -67,6 +67,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+
     public List<MyUser> searchUsers(UserSearchCriteria criteria) {
         String sql = "SELECT * FROM my_user WHERE 1=1";
         List<Object> args = new ArrayList<>();
@@ -79,6 +80,11 @@ public class UserServiceImpl implements UserService {
         if (criteria.getMobileNumber() != null) {
             sql += " AND mobile_number = ?";
             args.add(criteria.getMobileNumber());
+        }
+
+        if (criteria.getActive() != null) {
+            sql += " AND active = ?";
+            args.add(criteria.getActive());
         }
 
         return jdbcTemplate.query(sql, args.toArray(), new BeanPropertyRowMapper<>(MyUser.class));
