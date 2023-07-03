@@ -3,6 +3,7 @@ package com.example.SpringBootAssignment1.web.Controller;
 import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 import com.example.SpringBootAssignment1.repository.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +34,8 @@ public class UserController {
     }
 
     @PostMapping("_create")
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public ResponseEntity<?> createUser(@RequestBody List<User> userList) {
+        return userService.createUser(userList);
     }
 
     @PostMapping("_search")
@@ -42,9 +43,9 @@ public class UserController {
         return userService.searchUsers(criteria);
     }
 
-    @PatchMapping("_update/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user) {
-        return userService.updateUser(id, user);
+    @PatchMapping("_update")
+    public List<User> updateUser(@RequestBody List<User> userList) {
+        return userService.updateUser(userList);
     }
 
     @DeleteMapping("_delete/{id}")

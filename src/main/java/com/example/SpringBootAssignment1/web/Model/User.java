@@ -6,12 +6,9 @@ public class User {
     private String name;
     private String gender;
     private String mobileNumber;
-    private String address;
+    private Address address;
     private Boolean active;
-
     private Long createdTime;
-
-
 
     public Long getId() {
         return id;
@@ -45,11 +42,11 @@ public class User {
         this.mobileNumber = mobileNumber;
     }
 
-    public String getAddress() {
+    public Address getAddress() {
         return address;
     }
 
-    public void setAddress(String address) {
+    public void setAddress(Address address) {
         this.address = address;
     }
 
@@ -68,5 +65,4 @@ public class User {
     public void setCreatedTime(Long createdTime) {
         this.createdTime = createdTime;
     }
-
 }
