@@ -1,4 +1,4 @@
-package com.example.SpringBootAssignment1.Controller;
+package com.example.SpringBootAssignment1.web.Controller;
 
 
 import org.springframework.web.bind.annotation.GetMapping;

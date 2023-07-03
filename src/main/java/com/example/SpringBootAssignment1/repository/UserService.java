@@ -1,6 +1,7 @@
-package com.example.SpringBootAssignment1.Service;
+package com.example.SpringBootAssignment1.repository;
 
-import com.example.SpringBootAssignment1.Model.User;
+import com.example.SpringBootAssignment1.web.Model.User;
+import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.example.SpringBootAssignment1.Service;
+package com.example.SpringBootAssignment1.web.Model;
 
 public class UserSearchCriteria {
     private Long id;

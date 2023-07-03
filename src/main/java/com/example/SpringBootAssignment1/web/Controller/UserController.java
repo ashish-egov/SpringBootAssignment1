@@ -1,8 +1,8 @@
-package com.example.SpringBootAssignment1.Controller;
+package com.example.SpringBootAssignment1.web.Controller;
 
-import com.example.SpringBootAssignment1.Model.User;
-import com.example.SpringBootAssignment1.Service.UserSearchCriteria;
-import com.example.SpringBootAssignment1.Service.UserService;
+import com.example.SpringBootAssignment1.web.Model.User;
+import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
+import com.example.SpringBootAssignment1.repository.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

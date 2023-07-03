@@ -1,4 +1,4 @@
-package com.example.SpringBootAssignment1.Model;
+package com.example.SpringBootAssignment1.web.Model;
 
 public class User {
 
