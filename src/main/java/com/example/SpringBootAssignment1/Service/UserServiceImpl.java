@@ -67,23 +67,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-
     public List<MyUser> searchUsers(UserSearchCriteria criteria) {
-        String sql = "SELECT * FROM my_user WHERE 1=1";
+        String sql = "SELECT * FROM my_user";
         List<Object> args = new ArrayList<>();
+        boolean hasCriteria = false;
 
         if (criteria.getId() != null) {
-            sql += " AND id = ?";
+            sql += " WHERE id = ?";
             args.add(criteria.getId());
+            hasCriteria = true;
         }
 
         if (criteria.getMobileNumber() != null) {
-            sql += " AND mobile_number = ?";
+            if (hasCriteria) {
+                sql += " AND mobile_number = ?";
+            } else {
+                sql += " WHERE mobile_number = ?";
+                hasCriteria = true;
+            }
             args.add(criteria.getMobileNumber());
         }
 
         if (criteria.getActive() != null) {
-            sql += " AND active = ?";
+            if (hasCriteria) {
+                sql += " AND active = ?";
+            } else {
+                sql += " WHERE active = ?";
+                hasCriteria = true;
+            }
             args.add(criteria.getActive());
         }
 
