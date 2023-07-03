@@ -2,14 +2,16 @@ package com.example.SpringBootAssignment1.repository;
 
 import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,19 +35,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         String sql = "SELECT * FROM myUser";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
+        return jdbcTemplate.query(sql, new UserRowMapper());
     }
 
     @Override
     public List<User> getActiveUsers() {
         String sql = "SELECT * FROM activeUser";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
+        return jdbcTemplate.query(sql, new UserRowMapper());
     }
 
     @Override
     public List<User> getInActiveUsers() {
         String sql = "SELECT * FROM inActiveUser";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
+        return jdbcTemplate.query(sql, new UserRowMapper());
     }
 
     @Override
@@ -99,7 +101,7 @@ public class UserServiceImpl implements UserService {
             args.add(criteria.getActive());
         }
 
-        return jdbcTemplate.query(sql, args.toArray(), new BeanPropertyRowMapper<>(User.class));
+        return jdbcTemplate.query(sql, args.toArray(), new UserRowMapper());
     }
 
     @Override
@@ -119,6 +121,21 @@ public class UserServiceImpl implements UserService {
             return "No user exists with id " + id;
         }
         return "User of id " + id + " has been deleted.";
+    }
+
+    public class UserRowMapper implements RowMapper<User> {
+
+        @Override
+        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+            User user = new User();
+            user.setId(rs.getLong("id"));
+            user.setName(rs.getString("name"));
+            user.setGender(rs.getString("gender"));
+            user.setMobileNumber(rs.getString("mobileNumber"));
+            user.setAddress(rs.getString("address"));
+            user.setActive(rs.getBoolean("active"));
+            return user;
+        }
     }
 
 }
