@@ -9,6 +9,10 @@ public class User {
     private String address;
     private Boolean active;
 
+    private Long createdTime;
+
+
+
     public Long getId() {
         return id;
     }
@@ -56,4 +60,13 @@ public class User {
     public void setActive(Boolean active) {
         this.active = active;
     }
+
+    public Long getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Long createdTime) {
+        this.createdTime = createdTime;
+    }
+
 }

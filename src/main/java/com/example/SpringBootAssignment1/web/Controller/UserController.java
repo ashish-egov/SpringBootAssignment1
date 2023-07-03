@@ -42,7 +42,7 @@ public class UserController {
         return userService.searchUsers(criteria);
     }
 
-    @PutMapping("_update/{id}")
+    @PatchMapping("_update/{id}")
     public User updateUser(@PathVariable Long id, @RequestBody User user) {
         return userService.updateUser(id, user);
     }

@@ -2,6 +2,7 @@ package com.example.SpringBootAssignment1.repository;
 
 import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -12,6 +13,7 @@ import javax.annotation.PostConstruct;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class UserServiceImpl implements UserService {
     @PostConstruct
     public void createTable() {
         jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS myUser (id SERIAL, name VARCHAR(255), gender VARCHAR(255), mobileNumber VARCHAR(255), address VARCHAR(255), active BOOLEAN, PRIMARY KEY (id, active)) PARTITION BY LIST (active);");
+                "CREATE TABLE IF NOT EXISTS myUser (id SERIAL, name VARCHAR(255), gender VARCHAR(255), mobileNumber VARCHAR(255), address VARCHAR(255), active BOOLEAN, createdTime BIGINT, PRIMARY KEY (id, active)) PARTITION BY LIST (active);");
         jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS activeUser PARTITION OF myUser FOR VALUES IN (TRUE);");
         jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS inActiveUser PARTITION OF myUser FOR VALUES IN (FALSE);");
     }
@@ -52,8 +54,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(User user) {
-        String sql = "INSERT INTO myUser (name, gender, mobileNumber, address, active) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
+        Long currentTime = Instant.now().getEpochSecond();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, new String[] { "id" });
@@ -62,10 +65,12 @@ public class UserServiceImpl implements UserService {
             ps.setString(3, user.getMobileNumber());
             ps.setString(4, user.getAddress());
             ps.setBoolean(5, user.isActive());
+            ps.setLong(6, currentTime);
             return ps;
         }, keyHolder);
 
         user.setId(keyHolder.getKey().longValue());
+        user.setCreatedTime(currentTime);
         return user;
     }
 
@@ -104,13 +109,37 @@ public class UserServiceImpl implements UserService {
         return jdbcTemplate.query(sql, args.toArray(), new UserRowMapper());
     }
 
+
+    public User getUserById(Long id) {
+        String sql = "SELECT * FROM myUser WHERE id = ?";
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{id}, new UserRowMapper());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
     @Override
     public User updateUser(Long id, User user) {
-        String sql = "UPDATE myUser SET name=?, gender=?, mobileNumber=?, address=?, active=? WHERE id=?";
-        jdbcTemplate.update(sql, user.getName(), user.getGender(), user.getMobileNumber(), user.getAddress(),
-                user.isActive(), id);
-        user.setId(id);
-        return user;
+        User existingUser = getUserById(id);
+        if (existingUser == null) {
+            return null;
+        }
+        String name = user.getName() != null ? user.getName() : existingUser.getName();
+        String gender = user.getGender() != null ? user.getGender() : existingUser.getGender();
+        String mobileNumber = user.getMobileNumber() != null ? user.getMobileNumber() : existingUser.getMobileNumber();
+        String address = user.getAddress() != null ? user.getAddress() : existingUser.getAddress();
+        boolean active = user.isActive() != null ? user.isActive() : existingUser.isActive();
+        Long createdTime = existingUser.getCreatedTime();
+        existingUser.setId(id);
+        existingUser.setName(name);
+        existingUser.setGender(gender);
+        existingUser.setMobileNumber(mobileNumber);
+        existingUser.setAddress(address);
+        existingUser.setActive(active);
+        existingUser.setCreatedTime(createdTime);
+        String sql = "UPDATE myUser SET name=?, gender=?, mobileNumber=?, address=?, active=?, createdTime=? WHERE id=?";
+        jdbcTemplate.update(sql, name, gender, mobileNumber, address, active, createdTime, id);
+        return existingUser;
     }
 
     @Override
@@ -134,6 +163,7 @@ public class UserServiceImpl implements UserService {
             user.setMobileNumber(rs.getString("mobileNumber"));
             user.setAddress(rs.getString("address"));
             user.setActive(rs.getBoolean("active"));
+            user.setCreatedTime(rs.getLong("createdTime"));
             return user;
         }
     }
