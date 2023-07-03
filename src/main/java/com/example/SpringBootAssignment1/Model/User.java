@@ -1,6 +1,6 @@
 package com.example.SpringBootAssignment1.Model;
 
-public class MyUser {
+public class User {
 
     private Long id;
     private String name;

@@ -1,6 +1,6 @@
 package com.example.SpringBootAssignment1.Service;
 
-import com.example.SpringBootAssignment1.Model.MyUser;
+import com.example.SpringBootAssignment1.Model.User;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -24,51 +24,51 @@ public class UserServiceImpl implements UserService {
     @PostConstruct
     public void createTable() {
         jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS my_user (id SERIAL, name VARCHAR(255), gender VARCHAR(255), mobile_number VARCHAR(255), address VARCHAR(255), active BOOLEAN, PRIMARY KEY (id, active)) PARTITION BY LIST (active);");
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS active_user PARTITION OF my_user FOR VALUES IN (TRUE);");
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS inactive_user PARTITION OF my_user FOR VALUES IN (FALSE);");
+                "CREATE TABLE IF NOT EXISTS myUser (id SERIAL, name VARCHAR(255), gender VARCHAR(255), mobileNumber VARCHAR(255), address VARCHAR(255), active BOOLEAN, PRIMARY KEY (id, active)) PARTITION BY LIST (active);");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS activeUser PARTITION OF myUser FOR VALUES IN (TRUE);");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS inActiveUser PARTITION OF myUser FOR VALUES IN (FALSE);");
     }
 
     @Override
-    public List<MyUser> getAllUsers() {
-        String sql = "SELECT * FROM my_user";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MyUser.class));
+    public List<User> getAllUsers() {
+        String sql = "SELECT * FROM myUser";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
     }
 
     @Override
-    public List<MyUser> getActiveUsers() {
-        String sql = "SELECT * FROM active_user";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MyUser.class));
+    public List<User> getActiveUsers() {
+        String sql = "SELECT * FROM activeUser";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
     }
 
     @Override
-    public List<MyUser> getInactiveUsers() {
-        String sql = "SELECT * FROM inactive_user";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(MyUser.class));
+    public List<User> getInActiveUsers() {
+        String sql = "SELECT * FROM inActiveUser";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
     }
 
     @Override
-    public MyUser createUser(MyUser myUser) {
-        String sql = "INSERT INTO my_user (name, gender, mobile_number, address, active) VALUES (?, ?, ?, ?, ?)";
+    public User createUser(User user) {
+        String sql = "INSERT INTO myUser (name, gender, mobileNumber, address, active) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, new String[] { "id" });
-            ps.setString(1, myUser.getName());
-            ps.setString(2, myUser.getGender());
-            ps.setString(3, myUser.getMobileNumber());
-            ps.setString(4, myUser.getAddress());
-            ps.setBoolean(5, myUser.isActive());
+            ps.setString(1, user.getName());
+            ps.setString(2, user.getGender());
+            ps.setString(3, user.getMobileNumber());
+            ps.setString(4, user.getAddress());
+            ps.setBoolean(5, user.isActive());
             return ps;
         }, keyHolder);
 
-        myUser.setId(keyHolder.getKey().longValue());
-        return myUser;
+        user.setId(keyHolder.getKey().longValue());
+        return user;
     }
 
     @Override
-    public List<MyUser> searchUsers(UserSearchCriteria criteria) {
-        String sql = "SELECT * FROM my_user";
+    public List<User> searchUsers(UserSearchCriteria criteria) {
+        String sql = "SELECT * FROM myUser";
         List<Object> args = new ArrayList<>();
         boolean hasCriteria = false;
 
@@ -80,9 +80,9 @@ public class UserServiceImpl implements UserService {
 
         if (criteria.getMobileNumber() != null) {
             if (hasCriteria) {
-                sql += " AND mobile_number = ?";
+                sql += " AND mobileNumber = ?";
             } else {
-                sql += " WHERE mobile_number = ?";
+                sql += " WHERE mobileNumber = ?";
                 hasCriteria = true;
             }
             args.add(criteria.getMobileNumber());
@@ -98,21 +98,21 @@ public class UserServiceImpl implements UserService {
             args.add(criteria.getActive());
         }
 
-        return jdbcTemplate.query(sql, args.toArray(), new BeanPropertyRowMapper<>(MyUser.class));
+        return jdbcTemplate.query(sql, args.toArray(), new BeanPropertyRowMapper<>(User.class));
     }
 
     @Override
-    public MyUser updateUser(Long id, MyUser myUser) {
-        String sql = "UPDATE my_user SET name=?, gender=?, mobile_number=?, address=?, active=? WHERE id=?";
-        jdbcTemplate.update(sql, myUser.getName(), myUser.getGender(), myUser.getMobileNumber(), myUser.getAddress(),
-                myUser.isActive(), id);
-        myUser.setId(id);
-        return myUser;
+    public User updateUser(Long id, User user) {
+        String sql = "UPDATE myUser SET name=?, gender=?, mobileNumber=?, address=?, active=? WHERE id=?";
+        jdbcTemplate.update(sql, user.getName(), user.getGender(), user.getMobileNumber(), user.getAddress(),
+                user.isActive(), id);
+        user.setId(id);
+        return user;
     }
 
     @Override
     public String deleteUser(Long id) {
-        String sql = "DELETE FROM my_user WHERE id=?";
+        String sql = "DELETE FROM myUser WHERE id=?";
         int rowsDeleted = jdbcTemplate.update(sql, id);
         if (rowsDeleted == 0) {
             return "No user exists with id " + id;

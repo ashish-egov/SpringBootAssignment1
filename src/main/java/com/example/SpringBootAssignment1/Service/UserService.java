@@ -1,21 +1,21 @@
 package com.example.SpringBootAssignment1.Service;
 
-import com.example.SpringBootAssignment1.Model.MyUser;
+import com.example.SpringBootAssignment1.Model.User;
 
 import java.util.List;
 
 public interface UserService {
-    MyUser createUser(MyUser myUser);
+    User createUser(User user);
 
-    List<MyUser> searchUsers(UserSearchCriteria criteria);
+    List<User> searchUsers(UserSearchCriteria criteria);
 
-    MyUser updateUser(Long id, MyUser myUser);
+    User updateUser(Long id, User user);
 
     String deleteUser(Long id);
 
-    List<MyUser> getAllUsers();
+    List<User> getAllUsers();
 
-    List<MyUser> getActiveUsers();
+    List<User> getActiveUsers();
 
-    List<MyUser> getInactiveUsers();
+    List<User> getInActiveUsers();
 }
