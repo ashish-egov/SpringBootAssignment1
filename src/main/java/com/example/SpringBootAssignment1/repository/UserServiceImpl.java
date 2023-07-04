@@ -100,8 +100,6 @@ public class UserServiceImpl implements UserService {
 
                 // Add user to the database
                 String insertSql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?,?)";
-                UUID id = UUID.randomUUID();
-                String createdTime = LocalDateTime.now().toString();
                 ObjectMapper objectMapper = new ObjectMapper();
                 String addressJson;
                 try {
