@@ -1,23 +1,21 @@
 package com.example.SpringBootAssignment1.repository;
 
-import com.example.SpringBootAssignment1.web.Model.User;
 
-import java.util.List;
 
 public class UserCreationException extends Exception {
-    private final List<User> createdUsers;
-    private final List<User> duplicateUsers;
+    private final int createdUserCount;
+    private final int duplicateUserCount;
 
-    public UserCreationException(List<User> createdUsers, List<User> duplicateUsers) {
-        this.createdUsers = createdUsers;
-        this.duplicateUsers = duplicateUsers;
+    public UserCreationException(int createdUserCount, int duplicateUserCount) {
+        this.createdUserCount = createdUserCount;
+        this.duplicateUserCount = duplicateUserCount;
     }
 
-    public List<User> getCreatedUsers() {
-        return createdUsers;
+    public int getCreatedUserCount() {
+        return createdUserCount;
     }
 
-    public List<User> getDuplicateUsers() {
-        return duplicateUsers;
+    public int getDuplicateUserCount() {
+        return duplicateUserCount;
     }
 }

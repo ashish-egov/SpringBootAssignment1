@@ -1,8 +1,10 @@
 package com.example.SpringBootAssignment1.web.Model;
 
+import java.util.UUID;
+
 public class User {
 
-    private Long id;
+    private UUID id;
     private String name;
     private String gender;
     private String mobileNumber;
@@ -10,11 +12,11 @@ public class User {
     private Boolean active;
     private String createdTime;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

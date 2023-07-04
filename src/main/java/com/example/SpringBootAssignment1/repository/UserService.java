@@ -6,15 +6,16 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public interface UserService {
-    ResponseEntity<?> createUser(List<User> userList);
+    String createUser(List<User> userList);
 
     List<User> searchUsers(UserSearchCriteria criteria);
 
-    Map<String, List<User>> updateUser(List<User> userList);
+    String updateUser(List<User> userList);
 
-    String deleteUser(Long id);
+    String deleteUser(UUID id);
 
     List<User> getAllUsers();
 

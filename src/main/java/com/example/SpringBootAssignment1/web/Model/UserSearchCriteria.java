@@ -1,15 +1,17 @@
 package com.example.SpringBootAssignment1.web.Model;
 
+import java.util.UUID;
+
 public class UserSearchCriteria {
-    private Long id;
+    private UUID id;
     private String mobileNumber;
     private Boolean active;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

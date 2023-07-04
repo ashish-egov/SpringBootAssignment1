@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/")
@@ -35,7 +36,7 @@ public class UserController {
     }
 
     @PostMapping("_create")
-    public ResponseEntity<?> createUser(@RequestBody List<User> userList) {
+    public String createUser(@RequestBody List<User> userList) {
         return userService.createUser(userList);
     }
 
@@ -45,12 +46,12 @@ public class UserController {
     }
 
     @PatchMapping("_update")
-    public Map<String, List<User>> updateUser(@RequestBody List<User> userList) {
+    public String updateUser(@RequestBody List<User> userList) {
         return userService.updateUser(userList);
     }
 
     @DeleteMapping("_delete/{id}")
-    public String deleteUser(@PathVariable Long id, @RequestBody User user) {
+    public String deleteUser(@PathVariable UUID id) {
         return userService.deleteUser(id);
     }
 }

@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class UserCreator {
     private final JdbcTemplate jdbcTemplate;
@@ -28,9 +29,9 @@ public class UserCreator {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<User> createUsers(List<User> userList) throws UserCreationException {
-        List<User> createdUserList = new ArrayList<>();
-        List<User> duplicateUserList = new ArrayList<>();
+    public String createUsers(List<User> userList) throws UserCreationException{
+        int createdUserCount = 0;
+        int duplicateUserCount = 0;
 
         String sql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?, ?)";
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
@@ -39,21 +40,22 @@ public class UserCreator {
 
         for (User user : userList) {
             try {
-                User createdUser = createUser(user, sql, currentTime);
-                createdUserList.add(createdUser);
+                createUser(user, sql, currentTime);
+                createdUserCount++;
             } catch (DataIntegrityViolationException e) {
-                duplicateUserList.add(user);
+                duplicateUserCount++;
+                System.out.println(e.getMessage());
             }
         }
 
-        if (duplicateUserList.isEmpty()) {
-            return createdUserList;
+        if (duplicateUserCount == 0) {
+            return createdUserCount + " users created successfully";
         } else {
-            throw new UserCreationException(createdUserList, duplicateUserList);
+            return createdUserCount + " users created, " + duplicateUserCount + " users violated data unique integrity constraint";
         }
     }
 
-    private User createUser(User user, String sql, String currentTime) {
+    private void createUser(User user, String sql, String currentTime) {
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://random-data-api.com/api/v2/users?size=1";
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
@@ -83,21 +85,20 @@ public class UserCreator {
             throw new RuntimeException("Error serializing address object to JSON", e);
         }
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
-            ps.setString(1, user.getName());
-            ps.setString(2, user.getGender());
-            ps.setString(3, user.getMobileNumber());
-            ps.setString(4, addressJson);
-            ps.setBoolean(5, user.isActive());
-            ps.setString(6, currentTime);
-            return ps;
-        }, keyHolder);
 
-        user.setId(keyHolder.getKey().longValue());
-        user.setCreatedTime(currentTime);
-
-        return user;
+        try {
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(sql);
+                ps.setString(1, user.getName());
+                ps.setString(2, user.getGender());
+                ps.setString(3, user.getMobileNumber());
+                ps.setString(4, addressJson);
+                ps.setBoolean(5, user.isActive());
+                ps.setString(6, currentTime);
+                return ps;
+            });
+        } catch (DataIntegrityViolationException e) {
+            throw e;
+        }
     }
 }
