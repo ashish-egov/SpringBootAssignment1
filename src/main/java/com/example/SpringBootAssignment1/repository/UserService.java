@@ -2,7 +2,6 @@ package com.example.SpringBootAssignment1.repository;
 
 import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
