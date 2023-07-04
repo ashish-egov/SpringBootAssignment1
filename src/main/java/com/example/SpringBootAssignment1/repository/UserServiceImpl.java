@@ -11,17 +11,9 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,67 +72,13 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public ResponseEntity<?> createUser(List<User> userList) {
-        String sql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?, ?)";
-        Long currentTime = Instant.now().getEpochSecond();
-
-        List<User> createdUserList = new ArrayList<>();
-        List<User> duplicateUserList = new ArrayList<>();
-
-        for (User user : userList) {
-            try {
-                // Call the API to get a random user and extract the address object
-                String url = "https://random-data-api.com/api/v2/users?size=1";
-                RestTemplate restTemplate = new RestTemplate();
-                ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-                Map<String, Object> data = response.getBody();
-                Map<String, Object> addressData = (Map<String, Object>) data.get("address");
-
-                Address address = new Address();
-                address.setCity((String) addressData.get("city"));
-                address.setStreetName((String) addressData.get("street_name"));
-                address.setStreetAddress((String) addressData.get("street_address"));
-                address.setZipCode((String) addressData.get("zip_code"));
-                address.setState((String) addressData.get("state"));
-                address.setCountry((String) addressData.get("country"));
-
-                Map<String, Object> coordinatesData = (Map<String, Object>) addressData.get("coordinates");
-                Coordinates coordinates = new Coordinates();
-                coordinates.setLat((Double) coordinatesData.get("lat"));
-                coordinates.setLng((Double) coordinatesData.get("lng"));
-                address.setCoordinates(coordinates);
-                user.setAddress(address);
-                String addressJson;
-                try {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    addressJson = objectMapper.writeValueAsString(user.getAddress());
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException("Error serializing address object to JSON", e);
-                }
-                KeyHolder keyHolder = new GeneratedKeyHolder();
-                jdbcTemplate.update(connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql, new String[]{"id"});
-                    ps.setString(1, user.getName());
-                    ps.setString(2, user.getGender());
-                    ps.setString(3, user.getMobileNumber());
-                    ps.setString(4, addressJson);
-                    ps.setBoolean(5, user.isActive());
-                    ps.setLong(6, currentTime);
-                    return ps;
-                }, keyHolder);
-                user.setId(keyHolder.getKey().longValue());
-                user.setCreatedTime(currentTime);
-                createdUserList.add(user);
-            } catch (DataIntegrityViolationException e) {
-                duplicateUserList.add(user);
-            }
-        }
-
-        if (duplicateUserList.isEmpty()) {
+        try {
+            List<User> createdUserList = new UserCreator(jdbcTemplate).createUsers(userList);
             return ResponseEntity.ok(createdUserList);
-        } else {
+        } catch (UserCreationException e) {
             Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("createdUsers", createdUserList);
-            responseBody.put("duplicateUsers", duplicateUserList);
+            responseBody.put("createdUsers", e.getCreatedUsers());
+            responseBody.put("duplicateUsers", e.getDuplicateUsers());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(responseBody);
         }
     }
@@ -234,28 +172,4 @@ public class UserServiceImpl implements UserService {
         }
         return "User of id " + id + " has been deleted.";
     }
-
-    public class UserRowMapper implements RowMapper<User> {
-
-        @Override
-        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-            User user = new User();
-            user.setId(rs.getLong("id"));
-            user.setName(rs.getString("name"));
-            user.setGender(rs.getString("gender"));
-            user.setMobileNumber(rs.getString("mobileNumber"));
-            String addressJson = rs.getString("address");
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
-                Address address = objectMapper.readValue(addressJson, Address.class);
-                user.setAddress(address);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Error parsing address JSON", e);
-            }
-            user.setActive(rs.getBoolean("active"));
-            user.setCreatedTime(rs.getLong("createdTime"));
-            return user;
-        }
-    }
-
 }
