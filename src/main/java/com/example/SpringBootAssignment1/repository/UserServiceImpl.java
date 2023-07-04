@@ -6,6 +6,7 @@ import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -24,27 +25,16 @@ public class UserServiceImpl implements UserService {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public UserServiceImpl(JdbcTemplate jdbcTemplate) {
+    private UserTableCreator userTableCreator;
+
+    public UserServiceImpl(JdbcTemplate jdbcTemplate,UserTableCreator userTableCreator) {
         this.jdbcTemplate = jdbcTemplate;
+        this.userTableCreator=userTableCreator;
     }
 
     @PostConstruct
     public void createTable() {
-        jdbcTemplate.execute(
-                "CREATE TABLE IF NOT EXISTS myUser (" +
-                        "id SERIAL, " +
-                        "name VARCHAR(255), " +
-                        "gender VARCHAR(255), " +
-                        "mobileNumber VARCHAR(255), " +
-                        "address JSON, " +
-                        "active BOOLEAN, " +
-                        "createdTime BIGINT, " +
-                        "PRIMARY KEY (id, active), " +
-                        "CONSTRAINT uniqueNameAndMobileNumber UNIQUE (name, mobileNumber, active)" +
-                        ") PARTITION BY LIST (active);"
-        );
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS activeUser PARTITION OF myUser FOR VALUES IN (TRUE);");
-        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS inActiveUser PARTITION OF myUser FOR VALUES IN (FALSE);");
+        userTableCreator.createTables();
     }
 
     @Override
@@ -72,15 +62,17 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public ResponseEntity<?> createUser(List<User> userList) {
+        Map<String, Object> responseBody = new HashMap<>();
+        List<User> createdUserList = new ArrayList<>();
+        List<User> duplicateUserList = new ArrayList<>();
         try {
-            List<User> createdUserList = new UserCreator(jdbcTemplate).createUsers(userList);
-            return ResponseEntity.ok(createdUserList);
+            createdUserList = new UserCreator(jdbcTemplate).createUsers(userList);
         } catch (UserCreationException e) {
-            Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("createdUsers", e.getCreatedUsers());
-            responseBody.put("duplicateUsers", e.getDuplicateUsers());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(responseBody);
+            duplicateUserList = e.getDuplicateUsers();
         }
+        responseBody.put("createdUsers", createdUserList);
+        responseBody.put("duplicateUsers", duplicateUserList);
+        return ResponseEntity.ok(responseBody);
     }
 
     @Override
@@ -128,8 +120,9 @@ public class UserServiceImpl implements UserService {
         }
     }
     @Override
-    public List<User> updateUser(List<User> userList) {
+    public Map<String, List<User>> updateUser(List<User> userList) {
         List<User> updatedUserList = new ArrayList<>();
+        List<User> violatedUserList = new ArrayList<>();
         for (User user : userList) {
             Long id = user.getId();
             User existingUser = getUserById(id);
@@ -141,7 +134,7 @@ public class UserServiceImpl implements UserService {
             String mobileNumber = user.getMobileNumber() != null ? user.getMobileNumber() : existingUser.getMobileNumber();
             Address address = user.getAddress() != null ? user.getAddress() : existingUser.getAddress();
             boolean active = user.isActive() != null ? user.isActive() : existingUser.isActive();
-            Long createdTime = existingUser.getCreatedTime();
+            String createdTime = existingUser.getCreatedTime();
             existingUser.setId(id);
             existingUser.setName(name);
             existingUser.setGender(gender);
@@ -157,10 +150,17 @@ public class UserServiceImpl implements UserService {
                 throw new RuntimeException("Error serializing address object to JSON", e);
             }
             String sql = "UPDATE myUser SET name=?, gender=?, mobileNumber=?, address=?::json, active=?, createdTime=? WHERE id=?";
-            jdbcTemplate.update(sql, name, gender, mobileNumber, addressJson, active, createdTime, id);
-            updatedUserList.add(existingUser);
+            try {
+                jdbcTemplate.update(sql, name, gender, mobileNumber, addressJson, active, createdTime, id);
+                updatedUserList.add(existingUser);
+            } catch (DataIntegrityViolationException e) {
+                violatedUserList.add(existingUser);
+            }
         }
-        return updatedUserList;
+        Map<String, List<User>> resultMap = new HashMap<>();
+        resultMap.put("updated", updatedUserList);
+        resultMap.put("violated", violatedUserList);
+        return resultMap;
     }
 
     @Override

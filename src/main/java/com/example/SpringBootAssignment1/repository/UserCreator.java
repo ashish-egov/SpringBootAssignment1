@@ -14,6 +14,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.sql.PreparedStatement;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +33,9 @@ public class UserCreator {
         List<User> duplicateUserList = new ArrayList<>();
 
         String sql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?, ?)";
-        Long currentTime = Instant.now().getEpochSecond();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String currentTime = formatter.format(now);
 
         for (User user : userList) {
             try {
@@ -48,7 +53,7 @@ public class UserCreator {
         }
     }
 
-    private User createUser(User user, String sql, Long currentTime) {
+    private User createUser(User user, String sql, String currentTime) {
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://random-data-api.com/api/v2/users?size=1";
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
@@ -86,7 +91,7 @@ public class UserCreator {
             ps.setString(3, user.getMobileNumber());
             ps.setString(4, addressJson);
             ps.setBoolean(5, user.isActive());
-            ps.setLong(6, currentTime);
+            ps.setString(6, currentTime);
             return ps;
         }, keyHolder);
 

@@ -5,13 +5,14 @@ import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
     ResponseEntity<?> createUser(List<User> userList);
 
     List<User> searchUsers(UserSearchCriteria criteria);
 
-    List<User> updateUser(List<User> userList);
+    Map<String, List<User>> updateUser(List<User> userList);
 
     String deleteUser(Long id);
 

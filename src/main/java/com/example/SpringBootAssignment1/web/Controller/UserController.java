@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -44,7 +45,7 @@ public class UserController {
     }
 
     @PatchMapping("_update")
-    public List<User> updateUser(@RequestBody List<User> userList) {
+    public Map<String, List<User>> updateUser(@RequestBody List<User> userList) {
         return userService.updateUser(userList);
     }
 

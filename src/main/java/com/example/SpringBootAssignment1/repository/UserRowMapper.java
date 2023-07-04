@@ -27,7 +27,7 @@ public class UserRowMapper implements RowMapper<User> {
             throw new RuntimeException("Error parsing address JSON", e);
         }
         user.setActive(rs.getBoolean("active"));
-        user.setCreatedTime(rs.getLong("createdTime"));
+        user.setCreatedTime(rs.getString("createdTime"));
         return user;
     }
 }

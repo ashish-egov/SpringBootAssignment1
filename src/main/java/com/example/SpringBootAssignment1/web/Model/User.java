@@ -8,7 +8,7 @@ public class User {
     private String mobileNumber;
     private Address address;
     private Boolean active;
-    private Long createdTime;
+    private String createdTime;
 
     public Long getId() {
         return id;
@@ -58,11 +58,11 @@ public class User {
         this.active = active;
     }
 
-    public Long getCreatedTime() {
+    public String getCreatedTime() {
         return createdTime;
     }
 
-    public void setCreatedTime(Long createdTime) {
+    public void setCreatedTime(String createdTime) {
         this.createdTime = createdTime;
     }
 }
