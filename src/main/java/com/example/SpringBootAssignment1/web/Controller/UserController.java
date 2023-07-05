@@ -50,6 +50,7 @@ public class UserController {
         return userService.updateUser(userList);
     }
 
+
     @DeleteMapping("_delete/{id}")
     public String deleteUser(@PathVariable UUID id) {
         return userService.deleteUser(id);
