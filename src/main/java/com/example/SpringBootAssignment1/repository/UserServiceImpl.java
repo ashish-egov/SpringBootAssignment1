@@ -23,11 +23,14 @@ public class UserServiceImpl implements UserService {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final UserSearcher userSearcher;
+
     private UserTableCreator userTableCreator;
 
-    public UserServiceImpl(JdbcTemplate jdbcTemplate,UserTableCreator userTableCreator) {
+    public UserServiceImpl(JdbcTemplate jdbcTemplate,UserTableCreator userTableCreator,UserSearcher userSearcher) {
         this.jdbcTemplate = jdbcTemplate;
         this.userTableCreator=userTableCreator;
+        this.userSearcher = userSearcher;
     }
 
     @PostConstruct
@@ -123,37 +126,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> searchUsers(UserSearchCriteria criteria) {
-        String sql = "SELECT * FROM myUser";
-        List<Object> args = new ArrayList<>();
-        boolean hasCriteria = false;
-
-        if (criteria.getId() != null) {
-            sql += " WHERE id = ?";
-            args.add(criteria.getId());
-            hasCriteria = true;
-        }
-
-        if (criteria.getMobileNumber() != null) {
-            if (hasCriteria) {
-                sql += " AND mobileNumber = ?";
-            } else {
-                sql += " WHERE mobileNumber = ?";
-                hasCriteria = true;
-            }
-            args.add(criteria.getMobileNumber());
-        }
-
-        if (criteria.getActive() != null) {
-            if (hasCriteria) {
-                sql += " AND active = ?";
-            } else {
-                sql += " WHERE active = ?";
-                hasCriteria = true;
-            }
-            args.add(criteria.getActive());
-        }
-
-        return jdbcTemplate.query(sql, args.toArray(), new UserRowMapper());
+          return userSearcher.searchUsers(criteria);
     }
 
 
