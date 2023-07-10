@@ -47,8 +47,10 @@ public class UserController {
     public String createUser(@RequestBody List<User> userList) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         for (User user : userList) {
-            String json = mapper.writeValueAsString(user);
-            kafkaTemplate.send("user-topic-create", json);
+            if (!userService.userExists(user.getName(), user.getMobileNumber())) {
+                String json = mapper.writeValueAsString(user);
+                kafkaTemplate.send("user-topic-create", json);
+            }
         }
         return "User creation request sent to Kafka";
     }
@@ -60,10 +62,11 @@ public class UserController {
 
     @PatchMapping("_update")
     public String updateUser(@RequestBody List<User> userList) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
         for (User user : userList) {
-            String json = mapper.writeValueAsString(user);
-            kafkaTemplate.send("user-topic-update", json);
+            if (!userService.isDuplicateUser(user) && userService.userExistsById(user.getId())) {
+                String json = new ObjectMapper().writeValueAsString(user);
+                kafkaTemplate.send("user-topic-update", json);
+            }
         }
         return "User update request sent to Kafka";
     }

@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.UUID;
 
 public interface UserService {
-    String createUser(User user);
+    boolean createUser(User user);
 
     List<User> searchUsers(UserSearchCriteria criteria);
 
-    String updateUser(User user);
+    boolean updateUser(User user);
 
     String deleteUser(UUID id);
 
@@ -22,4 +22,9 @@ public interface UserService {
     List<User> getActiveUsers();
 
     List<User> getInActiveUsers();
+
+    boolean userExists(String name, String mobileNumber);
+    boolean isDuplicateUser(User user);
+
+    boolean userExistsById(UUID userId);
 }

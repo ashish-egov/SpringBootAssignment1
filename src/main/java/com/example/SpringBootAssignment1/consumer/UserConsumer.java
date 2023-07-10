@@ -24,7 +24,7 @@ public class UserConsumer {
             ObjectMapper mapper = new ObjectMapper();
             User user = mapper.readValue(userJson, User.class);
 
-            userService.createUser(user);
+            boolean result=userService.createUser(user);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -38,7 +38,7 @@ public class UserConsumer {
             User user = mapper.readValue(userJson, User.class);
 
             // Update the user in the database
-            userService.updateUser(user);
+            boolean result=userService.updateUser(user);
         } catch (Exception e) {
             // Log the exception and handle it appropriately
             e.printStackTrace();

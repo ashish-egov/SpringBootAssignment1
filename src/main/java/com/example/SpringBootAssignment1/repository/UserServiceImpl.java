@@ -62,57 +62,45 @@ public class UserServiceImpl implements UserService {
         return count == null || count == 0;
     }
     @Override
-    public String createUser(User user) {
-
+    public boolean createUser(User user) {
         LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String currentTime = formatter.format(now);
 
-        String sql = "SELECT COUNT(*) FROM myUser WHERE name = ? AND mobileNumber = ?";
-        int count = jdbcTemplate.queryForObject(sql, Integer.class, user.getName(), user.getMobileNumber());
+        // Fetch a random address from API
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "https://random-data-api.com/api/v2/users?size=1";
+        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+        Map<String, Object> data = response.getBody();
+        Map<String, Object> addressData = (Map<String, Object>) data.get("address");
 
-        if (count > 0) {
-            return "User already exist with name = "+ user.getName()+" and phoneNumber= ? "+ user.getMobileNumber();
+        Address address = new Address();
+        address.setCity((String) addressData.get("city"));
+        address.setStreetName((String) addressData.get("street_name"));
+        address.setStreetAddress((String) addressData.get("street_address"));
+        address.setZipCode((String) addressData.get("zip_code"));
+        address.setState((String) addressData.get("state"));
+        address.setCountry((String) addressData.get("country"));
+
+        Map<String, Object> coordinatesData = (Map<String, Object>) addressData.get("coordinates");
+        Coordinates coordinates = new Coordinates();
+        coordinates.setLat((Double) coordinatesData.get("lat"));
+        coordinates.setLng((Double) coordinatesData.get("lng"));
+        address.setCoordinates(coordinates);
+
+        // Add user to the database
+        String insertSql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?,?)";
+        ObjectMapper objectMapper = new ObjectMapper();
+        String addressJson;
+        try {
+            addressJson = objectMapper.writeValueAsString(address);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error serializing address object to JSON", e);
         }
-        else {
-            // Fetch a random address from API
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://random-data-api.com/api/v2/users?size=1";
-            ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-            Map<String, Object> data = response.getBody();
-            Map<String, Object> addressData = (Map<String, Object>) data.get("address");
+        Object[] values = {user.getName(), user.getGender(), user.getMobileNumber(), addressJson, user.isActive(), currentTime};
+        jdbcTemplate.update(insertSql, values);
 
-            Address address = new Address();
-            address.setCity((String) addressData.get("city"));
-            address.setStreetName((String) addressData.get("street_name"));
-            address.setStreetAddress((String) addressData.get("street_address"));
-            address.setZipCode((String) addressData.get("zip_code"));
-            address.setState((String) addressData.get("state"));
-            address.setCountry((String) addressData.get("country"));
-
-            Map<String, Object> coordinatesData = (Map<String, Object>) addressData.get("coordinates");
-            Coordinates coordinates = new Coordinates();
-            coordinates.setLat((Double) coordinatesData.get("lat"));
-            coordinates.setLng((Double) coordinatesData.get("lng"));
-            address.setCoordinates(coordinates);
-
-
-
-            // Add user to the database
-            String insertSql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?,?)";
-            ObjectMapper objectMapper = new ObjectMapper();
-            String addressJson;
-            try {
-                addressJson = objectMapper.writeValueAsString(address);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Error serializing address object to JSON", e);
-            }
-            Object[] values = {user.getName(), user.getGender(), user.getMobileNumber(), addressJson,user.isActive(),currentTime};
-            jdbcTemplate.update(insertSql, values);
-
-            return "User with name = "+user.getName()+" and phoneNumber = "+user.getMobileNumber()+" is created succesfully.";
-
-        }
+        return true;
     }
 
     @Override
@@ -129,63 +117,45 @@ public class UserServiceImpl implements UserService {
             return null;
         }
     }
-    @Override
-    public String updateUser(User user) {
+    public boolean updateUser(User user) {
+        // Update user in the database
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT * FROM myUser WHERE id = ?", user.getId());
 
-        String selectSql = "SELECT * FROM myUser WHERE name = ? AND mobileNumber = ? AND id <> ?";
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(selectSql, user.getName(), user.getMobileNumber(), user.getId());
+        UUID id = (UUID) row.get("id");
+        String name = user.getName() != null ? user.getName() : (String) row.get("name");
+        String gender = user.getGender() != null ? user.getGender() : (String) row.get("gender");
+        String mobileNumber = user.getMobileNumber() != null ? user.getMobileNumber() : (String) row.get("mobileNumber");
 
-        if (!rows.isEmpty()) {
-            // User with given name and mobile number already exists in the database, so skip updating this user
-            return "Conflict with name = "+user.getName()+" and phoneNumber = "+user.getMobileNumber();
-        } else {
-            // Check if user with given ID exists
-            String selectedUserList = "SELECT * FROM myUser WHERE id = ?";
-            List<Map<String, Object>> selectedUser = jdbcTemplate.queryForList(selectedUserList, user.getId());
-
-            if (selectedUser.isEmpty()) {
-                return "User with id = "+user.getId()+" not exists";
-            } else {
-                // Update user in the database
-                Map<String, Object> row = selectedUser.get(0);
-                UUID id = (UUID) row.get("id");
-
-                String name = user.getName() != null ? user.getName() : (String) row.get("name");
-                String gender = user.getGender() != null ? user.getGender() : (String) row.get("gender");
-                String mobileNumber = user.getMobileNumber() != null ? user.getMobileNumber() : (String) row.get("mobileNumber");
-
-                Address address = user.getAddress() != null ? user.getAddress() : null;
-                if (address == null) {
-                    // If the address field in the User object is null, use the existing address from the database
-                    Object addressObj = row.get("address");
-                    if (addressObj != null) {
-                        String addressJson = addressObj.toString();
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        try {
-                            address = objectMapper.readValue(addressJson, Address.class);
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException("Error deserializing address object from JSON from existing user", e);
-                        }
-                    }
-                }
-
-                boolean isActive = user.isActive() != null ? user.isActive() : (boolean) row.get("active");
-
-                String updateSql = "UPDATE myUser SET name = ?, gender = ?, mobileNumber = ?, address = ?::json, active = ? WHERE id = ?";
+        Address address = user.getAddress() != null ? user.getAddress() : null;
+        if (address == null) {
+            // If the address field in the User object is null, use the existing address from the database
+            Object addressObj = row.get("address");
+            if (addressObj != null) {
+                String addressJson = addressObj.toString();
                 ObjectMapper objectMapper = new ObjectMapper();
-
-                Object[] values;
                 try {
-                    values = new Object[]{name, gender, mobileNumber, address != null ? objectMapper.writeValueAsString(address) : null, isActive, id};
+                    address = objectMapper.readValue(addressJson, Address.class);
                 } catch (JsonProcessingException e) {
-                    throw new RuntimeException("Error serializing address object to JSON", e);
+                    throw new RuntimeException("Error deserializing address object from JSON from existing user", e);
                 }
-
-                jdbcTemplate.update(updateSql, values);
-
-                return "User with id = "+user.getId()+" is updated successfully";
             }
         }
+
+        boolean isActive = user.isActive() != null ? user.isActive() : (boolean) row.get("active");
+
+        String updateSql = "UPDATE myUser SET name = ?, gender = ?, mobileNumber = ?, address = ?::json, active = ? WHERE id = ?";
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        Object[] values;
+        try {
+            values = new Object[]{name, gender, mobileNumber, address != null ? objectMapper.writeValueAsString(address) : null, isActive, id};
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error serializing address object to JSON", e);
+        }
+
+        jdbcTemplate.update(updateSql, values);
+
+        return true;
     }
 
     @Override
@@ -196,5 +166,26 @@ public class UserServiceImpl implements UserService {
             return "No user exists with id " + id;
         }
         return "User of id " + id + " has been deleted.";
+    }
+
+    @Override
+    public boolean userExists(String name, String mobileNumber) {
+        String sql = "SELECT COUNT(*) FROM myUser WHERE name = ? AND mobileNumber = ?";
+        int count = jdbcTemplate.queryForObject(sql, Integer.class, name, mobileNumber);
+        return count > 0;
+    }
+
+    @Override
+    public boolean isDuplicateUser(User user) {
+        String selectSql = "SELECT COUNT(*) FROM myUser WHERE name = ? AND mobileNumber = ? AND id <> ?";
+        int count = jdbcTemplate.queryForObject(selectSql, Integer.class, user.getName(), user.getMobileNumber(), user.getId());
+        return count > 0;
+    }
+
+    @Override
+    public boolean userExistsById(UUID userId) {
+        String selectedUserList = "SELECT COUNT(*) FROM myUser WHERE id = ?";
+        int count = jdbcTemplate.queryForObject(selectedUserList, Integer.class, userId);
+        return count > 0;
     }
 }
