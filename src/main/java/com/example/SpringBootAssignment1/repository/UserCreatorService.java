@@ -63,7 +63,7 @@ public class UserCreatorService {
         }
         Object[] values = {user.getName(), user.getGender(), user.getMobileNumber(), addressJson, user.isActive(), currentTime};
         int rowsAffected = jdbcTemplate.update(insertSql, values);
-
+        System.out.println(rowsAffected+" rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
         return rowsAffected == 1;
     }
 }
