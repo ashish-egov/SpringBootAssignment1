@@ -1,0 +1,5 @@
+ 1. $.Demands[?(@.payer.address.street == "A"||@.payer.address.street == "B")]
+ 2. $.Demands[?(@.payer.address.street == "A" && @.payer.gender== "FEMALE")]
+ 3. $.Demands[?(@.taxPeriodFrom >= 1648751400000 && @.taxPeriodTo <= 1680287399999)]
+ 4. $.Demands[?(@.taxPeriodFrom >= 1617215400000  && @.taxPeriodTo <= 1648751399999)]
+ 5. $.Demands[?(@.payer.id == 34231 && @.payer.mobileNumber == '7878787878')]
