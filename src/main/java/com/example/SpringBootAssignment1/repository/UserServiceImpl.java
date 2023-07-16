@@ -6,6 +6,7 @@ import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,16 +62,30 @@ public class UserServiceImpl implements UserService {
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, user.getName(), user.getMobileNumber());
         return count == null || count == 0;
     }
+
+    @Value("${api.random-data-url}")
+    private String randomDataUrl;
     @Override
     public boolean createUser(User user) {
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String currentTime = formatter.format(now);
+        Address address = getRandomAddress();
+        String currentTime = getFormattedLocalTime();
 
-        // Fetch a random address from API
+        String insertSql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?, ?)";
+        ObjectMapper objectMapper = new ObjectMapper();
+        String addressJson;
+        try {
+            addressJson = objectMapper.writeValueAsString(address);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error serializing address object to JSON", e);
+        }
+
+        int rowsInserted = jdbcTemplate.update(insertSql, user.getName(), user.getGender(), user.getMobileNumber(), addressJson, user.isActive(), currentTime);
+        return rowsInserted > 0;
+    }
+
+    private Address getRandomAddress() {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://random-data-api.com/api/v2/users?size=1";
-        ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
+        ResponseEntity<Map> response = restTemplate.getForEntity(randomDataUrl, Map.class);
         Map<String, Object> data = response.getBody();
         Map<String, Object> addressData = (Map<String, Object>) data.get("address");
 
@@ -88,19 +103,12 @@ public class UserServiceImpl implements UserService {
         coordinates.setLng((Double) coordinatesData.get("lng"));
         address.setCoordinates(coordinates);
 
-        // Add user to the database
-        String insertSql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?,?)";
-        ObjectMapper objectMapper = new ObjectMapper();
-        String addressJson;
-        try {
-            addressJson = objectMapper.writeValueAsString(address);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error serializing address object to JSON", e);
-        }
-        Object[] values = {user.getName(), user.getGender(), user.getMobileNumber(), addressJson, user.isActive(), currentTime};
-        jdbcTemplate.update(insertSql, values);
+        return address;
+    }
 
-        return true;
+    private String getFormattedLocalTime() {
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+        return now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
     @Override
