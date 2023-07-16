@@ -1,5 +1,6 @@
-package com.example.SpringBootAssignment1.repository;
+package com.example.SpringBootAssignment1.repository.functions;
 
+import com.example.SpringBootAssignment1.repository.mappers.UserRowMapper;
 import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,11 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Component
 public class UserSearcher {
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
     public UserSearcher(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }

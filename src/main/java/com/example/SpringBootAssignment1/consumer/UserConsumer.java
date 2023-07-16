@@ -2,11 +2,10 @@ package com.example.SpringBootAssignment1.consumer;
 
 import com.example.SpringBootAssignment1.repository.UserService;
 import com.example.SpringBootAssignment1.web.Model.User;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import java.util.List;
+import java.util.UUID;
 
 @Component
 public class UserConsumer {
@@ -41,6 +40,17 @@ public class UserConsumer {
             boolean result=userService.updateUser(user);
         } catch (Exception e) {
             // Log the exception and handle it appropriately
+            e.printStackTrace();
+        }
+    }
+
+    @KafkaListener(topics = "user-topic-delete")
+    public void consumeUsersDelete(String userIdJson) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            UUID userId = mapper.readValue(userIdJson, UUID.class);
+            userService.deleteUser(userId);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

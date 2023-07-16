@@ -1,4 +1,4 @@
-package com.example.SpringBootAssignment1.repository;
+package com.example.SpringBootAssignment1.repository.functions;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,7 +9,6 @@ public class UserTableCreator {
 
     private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
     public UserTableCreator(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }

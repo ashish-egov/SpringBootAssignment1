@@ -1,4 +1,4 @@
-package com.example.SpringBootAssignment1.repository;
+package com.example.SpringBootAssignment1.repository.mappers;
 
 import com.example.SpringBootAssignment1.web.Model.Address;
 import com.example.SpringBootAssignment1.web.Model.Coordinates;

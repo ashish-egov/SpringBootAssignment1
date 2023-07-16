@@ -2,10 +2,9 @@ package com.example.SpringBootAssignment1.repository;
 
 import com.example.SpringBootAssignment1.web.Model.User;
 import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
-import org.springframework.stereotype.Component;
+
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public interface UserService {

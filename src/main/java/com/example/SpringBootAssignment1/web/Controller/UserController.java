@@ -5,13 +5,10 @@ import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 import com.example.SpringBootAssignment1.repository.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -73,14 +70,21 @@ public class UserController {
 
 
     @DeleteMapping("_delete/{id}")
-    public String deleteUser(@PathVariable UUID id) {
-        return userService.deleteUser(id);
+    public String deleteUser(@PathVariable UUID id) throws JsonProcessingException {
+        if(userService.userExistsById(id)) {
+            String json = new ObjectMapper().writeValueAsString(id);
+            kafkaTemplate.send("user-topic-delete", json);
+            return "User delete request sent to Kafka";
+        } else {
+            return "No user exists with id " + id;
+        }
     }
 
     @GetMapping("_deleteall")
     public String deleteAllMessages() {
         kafkaTemplate.send("user-topic-create", "--delete");
         kafkaTemplate.send("user-topic-update", "--delete");
-        return "All messages from Kafka topics user-topic-create and user-topic-update have been deleted.";
+        kafkaTemplate.send("user-topic-delete", "--delete");
+        return "All messages from Kafka topics user-topic-create, user-topic-update and user-topic-delete have been deleted.";
     }
 }
