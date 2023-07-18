@@ -6,6 +6,7 @@ import com.example.SpringBootAssignment1.repository.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +18,11 @@ import java.util.UUID;
 @RequestMapping("/")
 public class UserController {
 
-    private final UserService userService;
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
 
     @Value("${kafka.topic.user-create}")
     private String topicCreate;
@@ -28,12 +32,6 @@ public class UserController {
 
     @Value("${kafka.topic.user-delete}")
     private String topicDelete;
-
-    public UserController(UserService userService,KafkaTemplate<String, String> kafkaTemplate) {
-
-        this.userService = userService;
-        this.kafkaTemplate=kafkaTemplate;
-    }
 
     @GetMapping("_getall")
     public List<User> getAllUsers() {
