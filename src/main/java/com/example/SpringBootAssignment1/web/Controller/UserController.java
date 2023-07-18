@@ -5,6 +5,8 @@ import com.example.SpringBootAssignment1.web.Model.UserSearchCriteria;
 import com.example.SpringBootAssignment1.repository.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,15 @@ public class UserController {
 
     private final UserService userService;
     private final KafkaTemplate<String, String> kafkaTemplate;
+
+    @Value("${kafka.topic.user-create}")
+    private String topicCreate;
+
+    @Value("${kafka.topic.user-update}")
+    private String topicUpdate;
+
+    @Value("${kafka.topic.user-delete}")
+    private String topicDelete;
 
     public UserController(UserService userService,KafkaTemplate<String, String> kafkaTemplate) {
 
@@ -46,7 +57,7 @@ public class UserController {
         for (User user : userList) {
             if (!userService.userExists(user.getName(), user.getMobileNumber())) {
                 String json = mapper.writeValueAsString(user);
-                kafkaTemplate.send("user-topic-create", json);
+                kafkaTemplate.send(topicCreate, json);
             }
         }
         return "User creation request sent to Kafka";
@@ -62,7 +73,7 @@ public class UserController {
         for (User user : userList) {
             if (!userService.isDuplicateUser(user) && userService.userExistsById(user.getId())) {
                 String json = new ObjectMapper().writeValueAsString(user);
-                kafkaTemplate.send("user-topic-update", json);
+                kafkaTemplate.send(topicUpdate, json);
             }
         }
         return "User update request sent to Kafka";
@@ -73,7 +84,7 @@ public class UserController {
     public String deleteUser(@PathVariable UUID id) throws JsonProcessingException {
         if(userService.userExistsById(id)) {
             String json = new ObjectMapper().writeValueAsString(id);
-            kafkaTemplate.send("user-topic-delete", json);
+            kafkaTemplate.send(topicDelete, json);
             return "User delete request sent to Kafka";
         } else {
             return "No user exists with id " + id;
@@ -82,9 +93,9 @@ public class UserController {
 
     @GetMapping("_deleteall")
     public String deleteAllMessages() {
-        kafkaTemplate.send("user-topic-create", "--delete");
-        kafkaTemplate.send("user-topic-update", "--delete");
-        kafkaTemplate.send("user-topic-delete", "--delete");
-        return "All messages from Kafka topics user-topic-create, user-topic-update and user-topic-delete have been deleted.";
+        kafkaTemplate.send(new ProducerRecord<>(topicCreate, null, "null"));
+        kafkaTemplate.send(new ProducerRecord<>(topicUpdate, null, "null"));
+        kafkaTemplate.send(new ProducerRecord<>(topicDelete, null, "null"));
+        return "All messages from Kafka topics user-create, user-update and user-delete have been deleted.";
     }
 }

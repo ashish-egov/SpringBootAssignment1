@@ -7,11 +7,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserTableCreator {
 
-    private final JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    public UserTableCreator(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     public void createTables() {
         jdbcTemplate.execute("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";");

@@ -1,5 +1,6 @@
 package com.example.SpringBootAssignment1.repository.functions;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -8,11 +9,9 @@ import java.util.UUID;
 
 @Component
 public class UserDeleter {
-    private final JdbcTemplate jdbcTemplate;
 
-    public UserDeleter(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public String deleteUser(UUID id) {
         String sql = "DELETE FROM myUser WHERE id=?";

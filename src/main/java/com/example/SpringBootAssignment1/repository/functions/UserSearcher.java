@@ -13,11 +13,10 @@ import java.util.List;
 
 @Component
 public class UserSearcher {
-    private final JdbcTemplate jdbcTemplate;
 
-    public UserSearcher(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
 
     public List<User> searchUsers(UserSearchCriteria criteria) {
         String sql = "SELECT * FROM myUser";

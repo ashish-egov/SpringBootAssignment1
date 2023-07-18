@@ -5,6 +5,7 @@ import com.example.SpringBootAssignment1.web.Model.Coordinates;
 import com.example.SpringBootAssignment1.web.Model.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,11 +23,9 @@ public class UserCreator {
 
     @Value("${api.random-data-url}")
     private String randomDataUrl;
-    private final JdbcTemplate jdbcTemplate;
 
-    public UserCreator(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public boolean createUser(User user) {
         RestTemplate restTemplate = new RestTemplate();

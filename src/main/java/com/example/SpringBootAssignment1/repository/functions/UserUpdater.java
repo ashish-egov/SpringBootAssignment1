@@ -1,6 +1,7 @@
 package com.example.SpringBootAssignment1.repository.functions;
 
 import com.example.SpringBootAssignment1.web.Model.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import com.example.SpringBootAssignment1.web.Model.Address;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,11 +14,9 @@ import java.util.UUID;
 @Component
 public class UserUpdater {
 
-    private final JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
-    public UserUpdater(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
     public boolean updateUser(User user) {
         String updateSql = "UPDATE myUser SET name = ?, gender = ?, mobileNumber = ?, address = ?::json, active = ? WHERE id = ?";
         UUID id = user.getId();
