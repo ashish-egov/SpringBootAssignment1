@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String deleteUser(UUID id) {
+    public String deleteUser(String id) {
         return userDeleter.deleteUser(id);
     }
 
@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean userExistsById(UUID userId) {
+    public boolean userExistsById(String userId) {
         String selectedUserList = "SELECT COUNT(*) FROM myUser WHERE id = ?";
         int count = jdbcTemplate.queryForObject(selectedUserList, Integer.class, userId);
         return count > 0;

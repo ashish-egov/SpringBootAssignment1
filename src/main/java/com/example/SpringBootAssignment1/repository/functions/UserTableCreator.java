@@ -16,7 +16,7 @@ public class UserTableCreator {
 
         jdbcTemplate.execute(
                 "CREATE TABLE IF NOT EXISTS myUser (" +
-                        "id UUID DEFAULT uuid_generate_v4(), " +
+                        "id VARCHAR(255), " +
                         "name VARCHAR(255), " +
                         "gender VARCHAR(255), " +
                         "mobileNumber VARCHAR(255), " +

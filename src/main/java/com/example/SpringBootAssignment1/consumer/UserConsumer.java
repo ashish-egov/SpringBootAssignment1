@@ -47,7 +47,7 @@ public class UserConsumer {
     @KafkaListener(topics = "${kafka.topic.user-delete}")
     public void consumeUsersDelete(String userIdJson) {
         try {
-            UUID userId = mapper.readValue(userIdJson, UUID.class);
+            String userId = mapper.readValue(userIdJson, String.class);
             userService.deleteUser(userId);
         } catch (Exception e) {
             e.printStackTrace();

@@ -14,7 +14,7 @@ public interface UserService {
 
     boolean updateUser(User user);
 
-    String deleteUser(UUID id);
+    String deleteUser(String id);
 
     List<User> getAllUsers();
 
@@ -25,5 +25,5 @@ public interface UserService {
     boolean userExists(String name, String mobileNumber);
     boolean isDuplicateUser(User user);
 
-    boolean userExistsById(UUID userId);
+    boolean userExistsById(String userId);
 }

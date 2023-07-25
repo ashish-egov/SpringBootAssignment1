@@ -13,7 +13,7 @@ public class UserDeleter {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    public String deleteUser(UUID id) {
+    public String deleteUser(String id) {
         String sql = "DELETE FROM myUser WHERE id=?";
         int rowsDeleted = jdbcTemplate.update(sql, id);
         if (rowsDeleted == 0) {

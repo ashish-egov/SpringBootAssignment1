@@ -50,7 +50,7 @@ public class UserCreator {
         String currentTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"))
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        String insertSql = "INSERT INTO myUser (name, gender, mobileNumber, address, active, createdTime) VALUES (?, ?, ?, ?::json, ?, ?)";
+        String insertSql = "INSERT INTO myUser (id,name, gender, mobileNumber, address, active, createdTime) VALUES (?,?, ?, ?, ?::json, ?, ?)";
         ObjectMapper objectMapper = new ObjectMapper();
         String addressJson;
         try {
@@ -59,7 +59,7 @@ public class UserCreator {
             throw new RuntimeException("Error serializing address object to JSON", e);
         }
 
-        int rowsInserted = jdbcTemplate.update(insertSql, user.getName(), user.getGender(), user.getMobileNumber(), addressJson, user.isActive(), currentTime);
+        int rowsInserted = jdbcTemplate.update(insertSql, user.getId(),user.getName(), user.getGender(), user.getMobileNumber(), addressJson, user.isActive(), currentTime);
         return rowsInserted > 0;
     }
 

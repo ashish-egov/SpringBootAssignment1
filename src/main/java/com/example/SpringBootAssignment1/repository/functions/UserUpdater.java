@@ -19,7 +19,7 @@ public class UserUpdater {
 
     public boolean updateUser(User user) {
         String updateSql = "UPDATE myUser SET name = ?, gender = ?, mobileNumber = ?, address = ?::json, active = ? WHERE id = ?";
-        UUID id = user.getId();
+        String id = user.getId();
         Map<String, Object> row = jdbcTemplate.queryForMap("SELECT * FROM myUser WHERE id = ?", id);
         String name = user.getName() != null ? user.getName() : (String) row.get("name");
         String gender = user.getGender() != null ? user.getGender() : (String) row.get("gender");
